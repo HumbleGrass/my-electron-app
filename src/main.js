@@ -30,8 +30,7 @@ const createWindow = () => {
 
   // win.loadFile(path.join(__dirname, "index.html"));
 
-  // const loadURL = "http://192.168.50.247:17033/#/login"
-  const loadURL = "https://hskks.fdkkxbs.com:9596/login"
+  const loadURL = "http://192.168.50.247:17033/#/login"
 
   // 加载远程URL
   win.loadURL(loadURL).catch(error => {
