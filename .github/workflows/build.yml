@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 推荐先用单一平台调试
+    runs-on: macos-latest  # 推荐先用单一平台调试
     timeout-minutes: 30      # 避免超时失败
 
     steps:
@@ -25,7 +25,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build Electron app
-        run: yarn build:win  # 先测试单一平台
+        run: yarn build:mac  # 先测试单一平台
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 自动发布到 GitHub Releases
 
