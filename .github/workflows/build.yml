@@ -7,13 +7,9 @@ on:
   workflow_dispatch: # 允许手动触发
 
 jobs:
-  release:
-    name: Build and Release
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+  build:
+    runs-on: win-latest  # 推荐先用单一平台调试
+    timeout-minutes: 30      # 避免超时失败
 
     steps:
       - name: Checkout code
@@ -22,26 +18,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # 使用你项目支持的Node版本
-          cache: 'yarn' # 或 'npm' 根据你的包管理器
+          node-version: 20   # 使用与本地一致的 Node 版本
+          cache: 'yarn'     # 或 'npm'
 
       - name: Install dependencies
-        run: |
-          yarn install --frozen-lockfile
-          # 或者使用 npm: npm ci
+        run: yarn install --frozen-lockfile
 
-      - name: Build app
-        run: yarn build:mac # 你的构建脚本，可能需要先运行
+      - name: Build Electron app
+        run: yarn build:win  # 先测试单一平台
         env:
-          CI: true
-
-      - name: Build with electron-builder
-        run: yarn electron:build # 或 npx electron-builder
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 用于发布到GitHub Releases
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 自动发布到 GitHub Releases
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.os }}
-          path: dist/
+          name: electron-build
+          path: dist/        # 上传构建产物
