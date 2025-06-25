@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: win-latest  # 推荐先用单一平台调试
+    runs-on: ubuntu-latest  # 推荐先用单一平台调试
     timeout-minutes: 30      # 避免超时失败
 
     steps:
