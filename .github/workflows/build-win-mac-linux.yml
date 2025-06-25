@@ -6,81 +6,87 @@ on:
       - 'v*'
   workflow_dispatch: # 允许手动触发
 
-env:
-  CI: true
-  ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
-  ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
-
 jobs:
-  release:
-    name: Build and Release
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        include:
-          - os: macos-latest
-            artifact_name: mac
-            build_args: --mac --x64 --arm64
-          - os: ubuntu-latest
-            artifact_name: linux
-            build_args: --linux
-          - os: windows-latest
-            artifact_name: windows
-            build_args: --win --x64
+  build-windows:
+    runs-on: windows-latest  # 推荐先用单一平台调试
+    timeout-minutes: 30      # 避免超时失败
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # 获取所有历史记录和标签，用于版本检测
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'yarn'
+          node-version: 20   # 使用与本地一致的 Node 版本
+          cache: 'yarn'     # 或 'npm'
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build app
-        run: yarn build
-
-      - name: Set up caching
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/electron
-            ~/.cache/electron-builder
-            node_modules
-          key: ${{ runner.os }}-electron-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-electron-
-
-      - name: Build with electron-builder
-        run: |
-          yarn electron:build ${{ matrix.build_args }}
+      - name: Build Electron app
+        run: yarn build:win  # 先测试单一平台
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_LINK: ${{ secrets.CSC_LINK }} # macOS代码签名证书
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }} # Windows代码签名证书
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }} # macOS公证
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 自动发布到 GitHub Releases
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}-${{ github.run_number }}
-          path: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.exe
-            dist/*.blockmap
-            dist/latest.yml
-            dist/*.yml
+          name: electron-build-windows
+          path: dist/        # 上传构建产物
+
+  build-mac:
+    runs-on: macos-latest  # 推荐先用单一平台调试
+    timeout-minutes: 30      # 避免超时失败
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20   # 使用与本地一致的 Node 版本
+          cache: 'yarn'     # 或 'npm'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build Electron app
+        run: yarn build:mac  # 先测试单一平台
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 自动发布到 GitHub Releases
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-build-mac
+          path: dist/        # 上传构建产物
+
+build-linux:
+    runs-on: ubuntu-latest  # 推荐先用单一平台调试
+    timeout-minutes: 30      # 避免超时失败
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20   # 使用与本地一致的 Node 版本
+          cache: 'yarn'     # 或 'npm'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build Electron app
+        run: yarn build:linux  # 先测试单一平台
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 自动发布到 GitHub Releases
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-build-linux
+          path: dist/        # 上传构建产物
