@@ -31,7 +31,7 @@ jobs:
           # 或者使用 npm: npm ci
 
       - name: Build app
-        run: yarn build # 你的构建脚本，可能需要先运行
+        run: yarn build:mac # 你的构建脚本，可能需要先运行
         env:
           CI: true
 
