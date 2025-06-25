@@ -1,10 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # 当推送以v开头的标签时触发工作流
+
 jobs:
-  build:
+  release:
+    name: Build and Release
     runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
     steps:
-      - uses: actions/checkout@v4
-      - run: npm install
-      - run: npx electron-builder --${{ matrix.os == 'macos-latest' && 'mac' || matrix.os == 'windows-latest' && 'win' || 'linux' }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 使用你项目支持的Node版本
+          cache: 'yarn' # 或 'npm' 根据你的包管理器
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+          # 或者使用 npm: npm ci
+
+      - name: Build app
+        run: yarn build # 你的构建脚本，可能需要先运行
+        env:
+          CI: true
+
+      - name: Build with electron-builder
+        run: yarn electron:build # 或 npx electron-builder
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 用于发布到GitHub Releases
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          path: dist/
