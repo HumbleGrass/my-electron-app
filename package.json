@@ -1,7 +1,7 @@
 {
   "name": "wangshangpingjuan-app",
   "version": "1.0.0",
-  "description": "Wang Shang Ping Juan App",
+  "description": "中文水平考试评分平台",
   "author": "Your Name <you@example.com>",
   "main": "src/main.js",
   "scripts": {
@@ -13,7 +13,7 @@
   },
   "build": {
     "appId": "com.example.yourapp",
-    "productName": "wangshangpingjuan",
+    "productName": "中文水平考试评分平台",
     "copyright": "Copyright © 2023 Your Name",
     "directories": {
       "output": "dist",
